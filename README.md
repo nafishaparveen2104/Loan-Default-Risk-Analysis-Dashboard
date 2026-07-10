@@ -1,18 +1,18 @@
-# Loan Default Risk Analysis Dashboard
+## Loan Default Risk Analysis Dashboard
 
-[![Python](https://img.shields.io/badge/Python-3.x-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![Pandas](https://img.shields.io/badge/Pandas-Data%20Wrangling-150458?style=for-the-badge&logo=pandas&logoColor=white)](https://pandas.pydata.org/)
-[![MySQL](https://img.shields.io/badge/MySQL-Analytics-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
-[![Power BI](https://img.shields.io/badge/Power%20BI-Dashboard-F2C811?style=for-the-badge&logo=powerbi&logoColor=black)](https://powerbi.microsoft.com/)
-[![Status](https://img.shields.io/badge/Status-Analysis%20Complete-brightgreen?style=for-the-badge)](https://github.com/nafishaparveen2104/Loan-Default-Risk-Analysis-Dashboard)
-[![Dataset](https://img.shields.io/badge/Dataset-9%2C578%20Loans-0A66C2?style=for-the-badge)](https://www.kaggle.com/datasets/itssuru/loan-data)
+![Python](https://img.shields.io/badge/Python-3.x-3776AB?style=flat&logo=python&logoColor=white)
+![Pandas](https://img.shields.io/badge/Pandas-Data%20Wrangling-150458?style=flat&logo=pandas&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-Analytics-4479A1?style=flat&logo=mysql&logoColor=white)
+![Power BI](https://img.shields.io/badge/Power%20BI-Dashboard-F2C811?style=flat&logo=powerbi&logoColor=black)
+![Status](https://img.shields.io/badge/Status-Analysis%20Complete-brightgreen?style=flat)
+![Dataset](https://img.shields.io/badge/Dataset-9%2C578%20Loans-0A66C2?style=flat)
 
-**End-to-end credit-risk analytics on 9,578 historical LendingClub loans — from raw CSV cleaning in Python, through MySQL analysis, to an interactive Power BI dashboard and stakeholder report.**
+End-to-end credit-risk analytics on **9,578 historical LendingClub loans** — Python, MySQL, and Power BI.
 
-[Dashboard Preview](#dashboard-preview) · [Dataset](#dataset) · [Key Findings](#key-findings) · [Reproduce](#reproducing-this-project) · [Report](./Loan_Default_Risk_Report.pdf)
+[Dashboard](#dashboard-preview) · [Dataset](#dataset) · [Findings](#key-findings) · [Reproduce](#reproducing-this-project) · [Report](./Loan_Default_Risk_Report.pdf)
 
-**Repository:** [github.com/nafishaparveen2104/Loan-Default-Risk-Analysis-Dashboard](https://github.com/nafishaparveen2104/Loan-Default-Risk-Analysis-Dashboard)
----
+Repository: [github.com/nafishaparveen2104/Loan-Default-Risk-Analysis-Dashboard](https://github.com/nafishaparveen2104/Loan-Default-Risk-Analysis-Dashboard)
+
 
 ## Table of Contents
 
