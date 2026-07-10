@@ -11,6 +11,8 @@
 
 [Dashboard Preview](#dashboard-preview) · [Dataset](#dataset) · [Key Findings](#key-findings) · [Reproduce](#reproducing-this-project) · [Report](./Loan_Default_Risk_Report.pdf)
 
+
+**Repository:** [github.com/nafishaparveen2104/Loan-Default-Risk-Analysis-Dashboard](https://github.com/nafishaparveen2104/Loan-Default-Risk-Analysis-Dashboard)
 ---
 
 ## Table of Contents
@@ -206,28 +208,6 @@ Interactive Power BI page with four KPIs, four slicers, and six analytical visua
 | Version control | Git / GitHub | Source history and portfolio hosting |
 
 ---
-
-## Architecture and Data Flow
-
-```mermaid
-flowchart LR
-  A["Kaggle / LendingClub<br/>loan_data.csv<br/>9,578 × 14"]
-  B["Python Notebook<br/>Pandas + NumPy"]
-  C["Cleaned CSV<br/>9,578 × 15"]
-  D["MySQL<br/>loan_analysis.loan_data"]
-  E["Power Query<br/>Import mode"]
-  F["Power BI Model<br/>DAX measures + bands"]
-  G["Interactive Dashboard"]
-  H["PDF / DOCX Report"]
-
-  A -->|profile & validate| B
-  B -->|rename & flag outliers| C
-  C -->|load| D
-  D -->|refresh| E
-  E --> F
-  F --> G
-  G --> H
-```
 
 ### Power BI Source Configuration
 
@@ -624,7 +604,7 @@ Install MySQL Server and Power BI Desktop from their official distributions.
 
 ---
 
-## Skills Demonstrated
+## 🛠️ Skills Demonstrated
 
 `Data Cleaning` · `Data Validation` · `Data Profiling` · `Outlier Analysis` · `Python` · `Pandas` · `NumPy` · `Jupyter` · `Google Colab` · `MySQL` · `SQL` · `Power Query` · `DAX` · `Power BI` · `Data Visualization` · `Business Intelligence` · `Credit Risk Analysis` · `Dashboard Design` · `Data Storytelling` · `Technical Documentation` · `Git` · `GitHub`
 
@@ -632,18 +612,18 @@ Install MySQL Server and Power BI Desktop from their official distributions.
 
 ## Future Enhancements
 
-- [ ] Parameterize MySQL host, port, database, and table in Power Query
-- [ ] Add pinned Python dependencies / reproducible environment file
-- [ ] Convert notebook transforms into a testable CLI pipeline
-- [ ] Add schema, range, row-count, and aggregate regression tests
-- [ ] Configure GitHub Actions for automated validation
-- [ ] Convert PBIX to PBIP/TMDL for source-friendly version control
-- [ ] Add sample counts and confidence intervals to risk-segment visuals
-- [ ] Band sparse inquiry values into statistically meaningful groups
-- [ ] Correct or rename the annual-income measure
-- [ ] Power BI Service deployment, gateway, scheduled refresh, and RLS
-- [ ] Add an explicit repository license and contribution guide
-- [ ] Optional predictive workflow only after leakage review, temporal validation, calibration, explainability, and fairness testing
+- [1] Parameterize MySQL host, port, database, and table in Power Query
+- [2] Add pinned Python dependencies / reproducible environment file
+- [3] Convert notebook transforms into a testable CLI pipeline
+- [4] Add schema, range, row-count, and aggregate regression tests
+- [5] Configure GitHub Actions for automated validation
+- [6] Convert PBIX to PBIP/TMDL for source-friendly version control
+- [7] Add sample counts and confidence intervals to risk-segment visuals
+- [8] Band sparse inquiry values into statistically meaningful groups
+- [9] Correct or rename the annual-income measure
+- [10] Power BI Service deployment, gateway, scheduled refresh, and RLS
+- [11] Add an explicit repository license and contribution guide
+- [12] Optional predictive workflow only after leakage review, temporal validation, calibration, explainability, and fairness testing
 
 ---
 
@@ -673,23 +653,6 @@ Aspiring Data Analyst
 
 ---
 
-## License
-
-This repository does **not** currently include a `LICENSE` file. Project code, dashboard, and reports therefore have no explicit open-source license. Add a license before redistributing or incorporating these materials into another project.
-
-The source dataset is licensed separately under the [Open Data Commons Database Contents License 1.0](https://opendatacommons.org/licenses/dbcl/1-0/) (per the [Kaggle data card](https://www.kaggle.com/datasets/itssuru/loan-data)).
-
----
-
-## Acknowledgments
-
-- [ItsSuru](https://www.kaggle.com/itssuru) for publishing the loan dataset on Kaggle
-- LendingClub for the historical lending records described by the dataset source
-- The Pandas, NumPy, Jupyter, MySQL, and Microsoft Power BI communities
-- Practitioners who share standards for reproducibility, visualization, and responsible credit-risk analysis
-
----
-
-If this project was useful, consider starring the repository.
+⭐ If this project helped you or impressed you, consider starring the repo — it really helps visibility!
 
 [Back to top](#loan-default-risk-analysis-dashboard)
