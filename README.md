@@ -2,569 +2,524 @@
 
 # Loan Default Risk Analysis Dashboard
 
-**An end-to-end credit-risk analytics project built with Python, MySQL, and Power BI.**
+**A descriptive credit-risk analytics project built with Python, MySQL, DAX, and Power BI.**
 
-Explore where non-full-payment risk is concentrated across loan purpose, FICO score, debt-to-income ratio, revolving utilization, underwriting policy status, and recent credit inquiries.
+It transforms 9,578 historical LendingClub loan records into an interactive dashboard for examining repayment risk across loan purpose, FICO score, debt-to-income ratio, revolving utilization, credit-policy status, and recent credit inquiries.
 
-[![GitHub stars](https://img.shields.io/github/stars/nafishaparveen2104/Loan-Default-Risk-Analysis-Dashboard?style=flat-square)](https://github.com/nafishaparveen2104/Loan-Default-Risk-Analysis-Dashboard)
-[![Last commit](https://img.shields.io/github/last-commit/nafishaparveen2104/Loan-Default-Risk-Analysis-Dashboard?style=flat-square)](https://github.com/nafishaparveen2104/Loan-Default-Risk-Analysis-Dashboard/commits/main)
-[![Power BI](https://img.shields.io/badge/Power%20BI-Desktop-F2C811?style=flat-square&logo=powerbi&logoColor=black)](https://powerbi.microsoft.com/desktop/)
-[![Python](https://img.shields.io/badge/Python-3.x-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![MySQL](https://img.shields.io/badge/MySQL-Local%20database-4479A1?style=flat-square&logo=mysql&logoColor=white)](https://www.mysql.com/)
-[![Jupyter](https://img.shields.io/badge/Jupyter-Notebook-F37626?style=flat-square&logo=jupyter&logoColor=white)](https://jupyter.org/)
-[![Dataset](https://img.shields.io/badge/records-9%2C578-1F3864?style=flat-square)](https://www.kaggle.com/datasets/itssuru/loan-data)
-[![Repository license](https://img.shields.io/badge/repository%20license-not%20specified-lightgrey?style=flat-square)](#license)
+[![Power BI](https://img.shields.io/badge/Power%20BI-Desktop-F2C811?logo=powerbi&logoColor=111111)](./Loan_data_analysis_dashboard.pbix)
+[![Python](https://img.shields.io/badge/Python-3.x-3776AB?logo=python&logoColor=white)](./Loan_Data.ipynb)
+[![Jupyter](https://img.shields.io/badge/Jupyter-Notebook-F37626?logo=jupyter&logoColor=white)](./Loan_Data.ipynb)
+[![MySQL](https://img.shields.io/badge/MySQL-Analytics-4479A1?logo=mysql&logoColor=white)](./Database-Loan_data.sql)
+[![Dataset](https://img.shields.io/badge/Records-9%2C578-1F3864)](https://www.kaggle.com/datasets/itssuru/loan-data)
+[![Last Commit](https://img.shields.io/github/last-commit/nafishaparveen2104/Loan-Default-Risk-Analysis-Dashboard)](https://github.com/nafishaparveen2104/Loan-Default-Risk-Analysis-Dashboard/commits/main)
 
-[Dashboard](#dashboard) · [Key Findings](#key-findings) · [Architecture](#architecture) · [Quick Start](#quick-start) · [Data Dictionary](#data-dictionary) · [Limitations](#limitations)
+[Interactive Dashboard](./Loan_data_analysis_dashboard.pbix) · [PDF Report](./Loan_Default_Risk_Report.pdf) · [Analysis Notebook](./Loan_Data.ipynb) · [Open in Colab](https://colab.research.google.com/github/nafishaparveen2104/Loan-Default-Risk-Analysis-Dashboard/blob/main/Loan_Data.ipynb) · [Source Dataset](https://www.kaggle.com/datasets/itssuru/loan-data)
 
 </div>
 
----
+<p align="center">
+  <a href="https://ibb.co/ZCfmKDt">
+    <img src="https://i.ibb.co/cdyLtnM/Screenshot-2026-07-09-123720.png" alt="Loan Default Risk Dashboard showing portfolio KPIs, filters, and risk-segment visualizations" width="700">
+  </a>
+</p>
+
+> [!NOTE]
+> The dashboard abbreviates 9,578 loans as **10K** because the KPI card uses compact display units. All calculations use the complete 9,578-row dataset.
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Key Findings](#key-findings)
+- [Dashboard Views](#dashboard-views)
+- [Architecture](#architecture)
+- [Data Pipeline](#data-pipeline)
+- [Technology Stack](#technology-stack)
+- [Repository Structure](#repository-structure)
+- [Getting Started](#getting-started)
+- [Configuration and Refresh](#configuration-and-refresh)
+- [Power BI Semantic Model](#power-bi-semantic-model)
+- [Data Dictionary](#data-dictionary)
+- [Data Quality and Validation](#data-quality-and-validation)
+- [Operational Characteristics](#operational-characteristics)
+- [Limitations](#limitations)
+- [Roadmap](#roadmap)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+- [Dataset and License](#dataset-and-license)
 
 ## Overview
 
-This repository turns 9,578 historical LendingClub loan records from 2007–2010 into a reproducible business-intelligence workflow:
+This repository is an end-to-end **data analytics and business intelligence project**. It answers a practical portfolio-management question: **which borrower and loan segments have historically shown the highest rates of non-payment?**
 
-1. **Python/Jupyter** profiles the raw data, validates quality, standardizes field names, and flags extreme outliers.
-2. **MySQL** stores the cleaned dataset and supports repeatable portfolio queries.
-3. **Power BI** adds a semantic layer of DAX measures and risk bands, then presents the results through an interactive dashboard.
-4. **PDF and Word reports** translate the analysis into portfolio insights and recommendations.
+The workflow starts with public LendingClub data, validates and cleans it in a Google Colab notebook, stores the prepared table in MySQL, and imports it into a Power BI semantic model. DAX measures and calculated risk bands drive a single-page interactive dashboard and a written findings report.
 
-The project is designed for **descriptive portfolio analysis**. It helps identify segments associated with elevated non-full-payment rates; it does not train a credit model, score new applications, or expose a prediction API.
+The project is descriptive rather than predictive. In this analysis, `not_fully_paid = 1` is treated as the default-risk outcome; the repository does not train or deploy a credit-scoring model.
 
-> [!IMPORTANT]
-> Throughout the project, “default” is used as a concise dashboard label for records where `not_fully_paid = 1`. The source field means the loan was not paid in full and should not be interpreted as a legally adjudicated default without additional source documentation.
+### Portfolio Snapshot
 
-### Portfolio at a glance
+| Metric | Value | Definition |
+|---|---:|---|
+| Loan records | **9,578** | Complete records in the source and cleaned datasets |
+| Not fully paid | **1,533** | Loans where `not_fully_paid = 1` |
+| Overall default rate | **16.01%** | Not-fully-paid loans divided by all loans |
+| Average FICO score | **710.85** | Displayed as 711 in the dashboard |
+| Average interest rate | **12.26%** | Mean of `int_rate`, converted from a proportion to percent |
+| Credit-policy compliant | **7,710 (80.50%)** | Records where `credit_policy = 1` |
+| Credit-policy exceptions | **1,868 (19.50%)** | Records where `credit_policy = 0` |
+| Extreme outliers flagged | **439 (4.58%)** | Records flagged with the notebook's 3×IQR rule; no rows were removed |
 
-| Metric | Value |
-|---|---:|
-| Historical loan records | 9,578 |
-| Not fully paid | 1,533 |
-| Overall non-full-payment rate | 16.01% |
-| Average FICO score | 710.85 |
-| Average interest rate | 12.26% |
-| Loans meeting the credit policy | 7,710 (80.50%) |
-| Extreme-outlier flags retained | 439 (4.58%) |
+### What the Dashboard Supports
 
-> The Power BI KPI card displays `10K` because its display units are rounded automatically. The underlying row count is exactly **9,578**.
-
-## Dashboard
-
-<p align="center">
-  <a href="https://ibb.co/ZCfmKDt">
-    <img src="https://i.ibb.co/cdyLtnM/Screenshot-2026-07-09-123720.png" alt="Loan Default Risk Analysis Dashboard showing portfolio KPIs, filters, segmented default-rate charts, credit-policy distribution, and inquiry trends" width="700">
-  </a>
-</p>
-
-The single-page report combines four KPI cards, four slicers, four segmented risk charts, a credit-policy distribution chart, and a recent-inquiries trend. Selecting a purpose, FICO band, DTI band, or policy status updates the compatible visuals and portfolio metrics.
-
-| Dashboard area | Question answered |
-|---|---|
-| KPI cards | How large is the portfolio, and what are its overall risk, FICO, and interest-rate levels? |
-| Purpose slicer and chart | Which loan purposes have the highest non-full-payment rates? |
-| FICO bands | How sharply does repayment performance differ by credit score? |
-| DTI bands | Is higher borrower leverage associated with higher risk? |
-| Revolving-utilization bands | How does credit-line usage relate to repayment performance? |
-| Credit-policy donut | What share of records met the lender’s underwriting criteria? |
-| Recent-inquiries line | How does observed risk vary with inquiries during the previous six months? |
-
-<details>
-<summary><strong>View individual dashboard analyses</strong></summary>
-
-### Non-full-payment rate by loan purpose
-
-<p align="center">
-  <a href="https://ibb.co/r2sfSZ8B">
-    <img src="https://i.ibb.co/Mk654Rwz/Screenshot-2026-07-09-132503.png" alt="Bar chart of non-full-payment rate by loan purpose" width="700">
-  </a>
-</p>
-
-### Non-full-payment rate by FICO band
-
-<p align="center">
-  <a href="https://ibb.co/1t6GrQY0">
-    <img src="https://i.ibb.co/rRs2x0KQ/Screenshot-2026-07-09-132637.png" alt="Bar chart of non-full-payment rate by FICO band" width="700">
-  </a>
-</p>
-
-### Non-full-payment rate by DTI band
-
-<p align="center">
-  <a href="https://ibb.co/Dg4nXXgK">
-    <img src="https://i.ibb.co/4gWxyygN/Screenshot-2026-07-09-132727.png" alt="Bar chart of non-full-payment rate by debt-to-income band" width="700">
-  </a>
-</p>
-
-### Non-full-payment rate by revolving-utilization band
-
-<p align="center">
-  <a href="https://ibb.co/vx4QgZgK">
-    <img src="https://i.ibb.co/fYdnB4BP/Screenshot-2026-07-09-133019.png" alt="Bar chart of non-full-payment rate by revolving-utilization band" width="700">
-  </a>
-</p>
-
-### Loan distribution by credit-policy status
-
-<p align="center">
-  <a href="https://ibb.co/tWZcCyt">
-    <img src="https://i.ibb.co/L2Q6p4W/Screenshot-2026-07-09-133157.png" alt="Donut chart of loan distribution by credit-policy status" width="700">
-  </a>
-</p>
-
-### Non-full-payment rate by recent inquiries
-
-<p align="center">
-  <a href="https://ibb.co/JWcy9PLc">
-    <img src="https://i.ibb.co/hxgZSv5g/Screenshot-2026-07-09-133658.png" alt="Line chart of non-full-payment rate by inquiries in the previous six months" width="700">
-  </a>
-</p>
-
-</details>
+- Portfolio-level KPIs for volume, default rate, average FICO score, and average interest rate.
+- Interactive filtering by loan purpose, FICO band, DTI band, and credit-policy status.
+- Segment comparisons across seven loan purposes and three risk bands.
+- Analysis of recent credit inquiries as an early risk signal.
+- Separation of policy-compliant and policy-exception loans.
+- A traceable path from raw data through cleaning, SQL analysis, semantic modeling, visualization, and reporting.
 
 ## Key Findings
 
-### Risk concentration by purpose
+### Default Risk by Loan Purpose
 
-| Loan purpose | Records | Not fully paid | Rate |
+| Loan purpose | Loans | Not fully paid | Default rate |
 |---|---:|---:|---:|
 | Small business | 619 | 172 | **27.79%** |
 | Educational | 343 | 69 | **20.12%** |
-| Home improvement | 629 | 107 | 17.01% |
-| All other | 2,331 | 387 | 16.60% |
-| Debt consolidation | 3,957 | 603 | 15.24% |
-| Credit card | 1,262 | 146 | 11.57% |
+| Home improvement | 629 | 107 | **17.01%** |
+| All other | 2,331 | 387 | **16.60%** |
+| Debt consolidation | 3,957 | 603 | **15.24%** |
+| Credit card | 1,262 | 146 | **11.57%** |
 | Major purchase | 437 | 49 | **11.21%** |
 
-Small-business loans have the highest observed rate—more than twice the rate for major-purchase loans. Purpose is therefore useful for portfolio segmentation, although this descriptive comparison does not control for differences in borrower characteristics.
+Small-business loans have the highest observed non-payment rate, while major-purchase and credit-card loans have the lowest. These are historical associations and should not be interpreted as causal effects.
 
-### Risk-band comparison
+### Risk-Band Comparisons
 
-| Dimension | Low | Medium | High |
+| Dimension | Low | Medium | High | Observed pattern |
+|---|---:|---:|---:|---|
+| FICO score | 23.62% (`<680`) | 15.63% (`680–749`) | 7.43% (`≥750`) | Lower FICO scores show substantially higher default rates. |
+| DTI ratio | 14.83% (`<10`) | 16.10% (`10–<20`) | 18.33% (`≥20`) | Default rates rise with borrower debt burden. |
+| Revolving utilization | 12.43% (`<30`) | 16.33% (`30–<60`) | 18.97% (`≥60`) | Higher utilization is associated with higher default rates. |
+
+### Credit-Policy Performance
+
+| Credit-policy status | Loans | Not fully paid | Default rate |
 |---|---:|---:|---:|
-| FICO score | 23.62% | 15.63% | 7.43% |
-| Debt-to-income ratio | 14.83% | 16.10% | 18.33% |
-| Revolving utilization | 12.43% | 16.33% | 18.97% |
+| Meets policy (`1`) | 7,710 | 1,014 | **13.15%** |
+| Does not meet policy (`0`) | 1,868 | 519 | **27.78%** |
 
-For FICO, “Low” represents the riskier score range and “High” represents the stronger score range. The observed rate falls from 23.62% below a FICO score of 680 to 7.43% at 750 and above.
+Policy-exception loans make up 19.50% of the portfolio and have more than twice the observed default rate of policy-compliant loans.
 
-### Underwriting-policy comparison
+### Additional Observations
 
-| Credit-policy status | Records | Portfolio share | Not fully paid | Rate |
-|---|---:|---:|---:|---:|
-| Meets criteria (`1`) | 7,710 | 80.50% | 1,014 | 13.15% |
-| Does not meet criteria (`0`) | 1,868 | 19.50% | 519 | 27.78% |
+- The 439 extreme-outlier records have a **21.18%** default rate, compared with **15.76%** for non-outlier records.
+- Default rates generally increase through the commonly populated recent-inquiry counts. Values at very high inquiry counts are volatile because some groups contain only one or two records.
+- Interest-rate bands in the semantic model also separate risk: default rates range from **7.41%** in the 5%–10% band to **35.14%** in the 20%–25% band. Interest rates already reflect lender risk assessment, so this relationship should not be interpreted independently of underwriting.
 
-Records outside the stated credit policy show an observed non-full-payment rate more than twice that of policy-compliant records. This supports monitoring policy exceptions as a distinct portfolio segment.
+## Dashboard Views
 
-### Recent inquiries
+### Loan Purpose
 
-The rate is 11.74% for borrowers with no inquiries, 20.83% at three inquiries, 27.34% at five, and 32.73% at six. Values above ten inquiries contain very few records, so the sharp spikes and drops in the chart are sample-size effects and should not be treated as a stable monotonic relationship.
+<p align="center">
+  <a href="https://ibb.co/r2sfSZ8B">
+    <img src="https://i.ibb.co/Mk654Rwz/Screenshot-2026-07-09-132503.png" alt="Default rate by loan purpose" width="700">
+  </a>
+</p>
+
+### FICO Score Bands
+
+<p align="center">
+  <a href="https://ibb.co/1t6GrQY0">
+    <img src="https://i.ibb.co/rRs2x0KQ/Screenshot-2026-07-09-132637.png" alt="Default rate by FICO score band" width="700">
+  </a>
+</p>
+
+### Debt-to-Income Bands
+
+<p align="center">
+  <a href="https://ibb.co/Dg4nXXgK">
+    <img src="https://i.ibb.co/4gWxyygN/Screenshot-2026-07-09-132727.png" alt="Default rate by debt-to-income band" width="700">
+  </a>
+</p>
+
+### Revolving Credit Utilization
+
+<p align="center">
+  <a href="https://ibb.co/vx4QgZgK">
+    <img src="https://i.ibb.co/fYdnB4BP/Screenshot-2026-07-09-133019.png" alt="Default rate by revolving credit utilization band" width="700">
+  </a>
+</p>
+
+### Credit-Policy Distribution
+
+<p align="center">
+  <a href="https://ibb.co/tWZcCyt">
+    <img src="https://i.ibb.co/L2Q6p4W/Screenshot-2026-07-09-133157.png" alt="Loan distribution by credit-policy status" width="700">
+  </a>
+</p>
+
+### Recent Credit Inquiries
+
+<p align="center">
+  <a href="https://ibb.co/JWcy9PLc">
+    <img src="https://i.ibb.co/hxgZSv5g/Screenshot-2026-07-09-133658.png" alt="Default rate by credit inquiries during the last six months" width="700">
+  </a>
+</p>
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    A["Kaggle loan_data.csv<br/>9,578 rows · 14 columns"]
-    B["Jupyter notebook<br/>Pandas + NumPy"]
-    C["Validation and preparation<br/>rename · type check · outlier flag"]
-    D["loan_data_cleaned.csv<br/>9,578 rows · 15 columns"]
-    E["MySQL<br/>loan_analysis.loan_data"]
-    F["Power Query<br/>MySQL.Database connector"]
-    G["Power BI semantic model<br/>DAX measures + calculated bands"]
-    H["Interactive dashboard<br/>KPIs · slicers · charts"]
-    I["PDF and Word report"]
+    A["Kaggle / LendingClub<br/>loan_data.csv<br/>9,578 × 14"]
+    B["Google Colab Notebook<br/>Pandas + NumPy"]
+    C["loan_data_cleaned.csv<br/>9,578 × 15"]
+    D["MySQL<br/>loan_analysis.loan_data"]
+    E["Power Query<br/>MySQL import"]
+    F["Power BI Semantic Model<br/>5 calculated columns<br/>11 DAX measures"]
+    G["Interactive Dashboard<br/>KPIs + slicers + charts"]
+    H["PDF / DOCX Report"]
 
-    A --> B --> C --> D --> E --> F --> G --> H --> I
+    A -->|validate, rename, flag outliers| B
+    B -->|export| C
+    C -->|load into schema| D
+    D -->|batch refresh| E
+    E --> F
+    F --> G
+    G --> H
 ```
 
-### Request and refresh flow
-
-```mermaid
-sequenceDiagram
-    actor Analyst
-    participant PBI as Power BI Desktop
-    participant PQ as Power Query
-    participant DB as MySQL
-    participant VP as Imported semantic model
-
-    Analyst->>PBI: Open PBIX
-    PBI->>VP: Render embedded data snapshot
-    Analyst->>PBI: Select Refresh
-    PBI->>PQ: Execute configured M query
-    PQ->>DB: Read loan_analysis.loan_data
-    DB-->>PQ: Return cleaned loan records
-    PQ-->>VP: Replace imported table data
-    VP-->>PBI: Recalculate bands, measures, and visuals
-```
-
-### Design decisions
-
-| Decision | Why it exists |
-|---|---|
-| Preserve every source row | Extreme values may represent genuine borrower behavior; 439 records are flagged rather than deleted. |
-| Rename dotted columns | Underscore-based names are easier to use consistently in Python, SQL, Power Query, and DAX. |
-| Use a single-table model | The source is already a compact analytical table and requires no relationships at its current scale. |
-| Import data into Power BI | The small static dataset fits comfortably in the embedded columnar model and remains responsive during slicing. |
-| Create risk bands in DAX | Business thresholds remain visible in the semantic layer and can be changed without rewriting the source CSV. |
-| Separate raw and cleaned CSVs | The original data remains available for traceability while downstream tools consume a standardized schema. |
+The Power BI file uses an imported, single-table model. This keeps the current 9,578-row workload simple and responsive, but refreshes depend on the configured MySQL source rather than a live API or streaming pipeline.
 
 ## Data Pipeline
 
-### 1. Profiling and validation
+| Stage | Input | Processing | Output |
+|---|---|---|---|
+| 1. Source | `loan_data.csv` | Load 14 columns from the public 2007–2010 lending dataset. | Raw DataFrame with 9,578 rows |
+| 2. Profile | Raw DataFrame | Inspect shape, types, missing values, duplicates, ranges, categories, and summary statistics. | Data-quality profile |
+| 3. Clean | Profiled data | Replace dots in column names with underscores and cast `purpose` to a categorical type. | SQL-friendly schema |
+| 4. Validate | Cleaned data | Check negative values and confirm the observed FICO range is within the valid 300–850 range. | Validated records |
+| 5. Flag | `revol_bal`, `days_with_cr_line`, and `dti` | Apply a 3×IQR extreme-outlier rule and retain the records with `is_outlier = 1`. | 439 flagged rows |
+| 6. Persist | `loan_data_cleaned.csv` | Load the 15-column output into `loan_analysis.loan_data`. | MySQL analytics table |
+| 7. Model | MySQL table | Import with Power Query; add DAX measures and calculated bands. | Power BI semantic model |
+| 8. Present | Semantic model | Build interactive KPIs, slicers, and segment visualizations. | PBIX dashboard and written report |
 
-[`Loan_Data.ipynb`](Loan_Data.ipynb) performs the following checks:
-
-- confirms the raw shape of 9,578 rows and 14 columns;
-- inspects data types, summary statistics, and seven purpose categories;
-- verifies there are no missing values or duplicate rows;
-- checks selected numeric fields for negative values;
-- confirms the observed FICO range is 612–827;
-- counts 1.5×IQR outliers for eight numeric fields;
-- converts `purpose` to a categorical dtype during processing.
-
-### 2. Standardization and outlier handling
-
-Dots in raw field names are replaced with underscores. An `is_outlier` flag is then set to `1` when any of these fields falls outside its 3×IQR bounds:
-
-- `revol_bal`
-- `days_with_cr_line`
-- `dti`
-
-No rows are imputed, capped, or removed. The resulting [`loan_data_cleaned.csv`](loan_data_cleaned.csv) contains the original 9,578 records plus the outlier flag.
-
-### 3. SQL analytical layer
-
-[`Database-Loan_data.sql`](Database-Loan_data.sql) defines `loan_analysis.loan_data` and includes queries for:
-
-- row-count and null validation;
-- overall non-full-payment rate;
-- purpose-level volume, interest rate, and risk;
-- credit-policy comparisons;
-- FICO-band performance;
-- purpose-level installment, DTI, and log-income averages;
-- recent-inquiry performance.
-
-### 4. Power BI semantic layer
-
-The PBIX imports one MySQL table and adds five calculated columns and eleven measures. There are no model relationships, row-level security roles, object-level security rules, calculation groups, or aggregation tables.
-
-#### Calculated risk bands
-
-| Calculated column | Definition |
-|---|---|
-| `fico_band` | Low: `< 680`; Medium: `680–749`; High: `≥ 750` |
-| `dti_band` | Low: `< 10`; Medium: `10–< 20`; High: `≥ 20` |
-| `revol_util_band` | Low: `< 30`; Medium: `30–< 60`; High: `≥ 60` |
-| `interest_rate_band` | `5%–10%`, `10%–15%`, `15%–20%`, or `20%–25%`, using 10%, 15%, and 20% cutoffs |
-| `fico_band_2` | Below 650, 650–699, 700–749, 750–799, or 800+ |
-
-`interest_rate_band` and `fico_band_2` are available in the semantic model but are not used by the current dashboard visuals.
-
-#### DAX measures
-
-| Measure | Definition | Role |
-|---|---|---|
-| `Total Loans` | `COUNTROWS('loan_analysis loan_data')` | KPI and policy distribution |
-| `Total Defaults` | `SUM('loan_analysis loan_data'[not_fully_paid])` | Supporting total |
-| `Default Rate %` | `DIVIDE(SUM('loan_analysis loan_data'[not_fully_paid]), COUNTROWS('loan_analysis loan_data'), 0)` | KPI and segmented charts |
-| `Avg FICO Score` | `AVERAGE('loan_analysis loan_data'[fico])` | KPI |
-| `Avg Interest Rate %` | `AVERAGE('loan_analysis loan_data'[int_rate]) * 100` | KPI |
-| `Avg Installment` | `AVERAGE('loan_analysis loan_data'[installment])` | Supporting analysis |
-| `Avg DTI` | `AVERAGE('loan_analysis loan_data'[dti])` | Supporting analysis |
-| `Avg Log Income` | `AVERAGE('loan_analysis loan_data'[log_annual_inc])` | Supporting analysis |
-| `Avg Annual Income` | `AVERAGE('loan_analysis loan_data'[log_annual_inc])` | Legacy duplicate; see [Limitations](#limitations) |
-| `Check Values` | `DISTINCTCOUNT('loan_analysis loan_data'[not_fully_paid])` | Data-quality check |
-| `Total Rows Check` | `COUNTROWS('loan_analysis loan_data')` | Data-quality check |
+> [!IMPORTANT]
+> Outliers are **flagged, not deleted**. This preserves portfolio totals and lets analysts compare outlier and non-outlier behavior without silently discarding valid high-value observations.
 
 ## Technology Stack
 
-| Layer | Technology | Use in this repository |
+| Layer | Technology | Role |
 |---|---|---|
-| Source data | CSV / Kaggle | Historical LendingClub loan records from 2007–2010 |
-| Data preparation | Python, Pandas, NumPy | Profiling, validation, field normalization, and outlier flagging |
-| Analysis environment | Google Colab / Jupyter Notebook | Executable preparation workflow and retained cell outputs |
-| Database | MySQL | Table definition and portfolio-analysis queries |
-| Data connector | Power Query M | Imports `loan_analysis.loan_data` from `localhost:3306` |
-| Semantic model | Power BI / DAX | Measures, score bands, filter context, and imported storage |
-| Visualization | Power BI Desktop | Interactive KPIs, slicers, bar charts, donut chart, and line chart |
-| Reporting | PDF, DOCX | Shareable narrative findings and recommendations |
+| Data source | Kaggle / LendingClub dataset | Historical loan and borrower attributes from 2007–2010 |
+| Data preparation | Python, Pandas, NumPy | Profiling, validation, column normalization, and outlier flagging |
+| Development environment | Google Colab / Jupyter Notebook | Executing and documenting the cleaning workflow |
+| Database | MySQL | Persisting the cleaned analytics table and running portfolio queries |
+| Data ingestion | Power Query M | Importing `loan_analysis.loan_data` from MySQL |
+| Semantic layer | DAX | KPIs, validation measures, and reusable risk bands |
+| Visualization | Microsoft Power BI Desktop | Interactive dashboard and cross-filtering |
+| Reporting | Microsoft Word and PDF | Portable executive summary, findings, and recommendations |
 
-No package manifest is currently committed. The notebook directly imports `pandas`, `numpy`, and the Colab-specific `google.colab.files` helper.
+Dependency versions are not pinned in the current repository. The notebook directly imports `pandas`, `numpy`, and `google.colab.files`.
 
 ## Repository Structure
 
-| Path | Purpose |
+| File | Purpose |
 |---|---|
-| [`README.md`](README.md) | Project documentation and reproduction guide |
-| [`loan_data.csv`](loan_data.csv) | Original 9,578-row source dataset with 14 columns |
-| [`Loan_Data.ipynb`](Loan_Data.ipynb) | Colab-oriented profiling and cleaning notebook |
-| [`loan_data_cleaned.csv`](loan_data_cleaned.csv) | Standardized 15-column dataset consumed by MySQL |
-| [`Database-Loan_data.sql`](Database-Loan_data.sql) | MySQL schema and analytical queries |
-| [`Loan_data_analysis_dashboard.pbix`](Loan_data_analysis_dashboard.pbix) | Power BI report, semantic model, and imported data snapshot |
-| [`Loan_Default_Risk_Report.pdf`](Loan_Default_Risk_Report.pdf) | Final five-page analysis report |
-| [`Loan_Default_Risk_Report.docx`](Loan_Default_Risk_Report.docx) | Editable report source |
+| [`Loan_Data.ipynb`](./Loan_Data.ipynb) | Colab-oriented data profiling and cleaning notebook |
+| [`loan_data.csv`](./loan_data.csv) | Original 9,578-row, 14-column dataset |
+| [`loan_data_cleaned.csv`](./loan_data_cleaned.csv) | Cleaned 15-column dataset with normalized names and `is_outlier` |
+| [`Database-Loan_data.sql`](./Database-Loan_data.sql) | MySQL database/table definition and portfolio analysis queries |
+| [`Loan_data_analysis_dashboard.pbix`](./Loan_data_analysis_dashboard.pbix) | Interactive Power BI dashboard and embedded semantic model |
+| [`Loan_Default_Risk_Report.pdf`](./Loan_Default_Risk_Report.pdf) | Five-page portable analysis report |
+| [`Loan_Default_Risk_Report.docx`](./Loan_Default_Risk_Report.docx) | Editable report source |
+| `README.md` | Project documentation and reproducibility guide |
 
-## Quick Start
+## Getting Started
 
 ### Prerequisites
 
 | Requirement | Needed for |
 |---|---|
-| Git | Clone the repository |
-| Power BI Desktop | Open or edit the `.pbix` dashboard |
-| Google Colab | Re-run the notebook without changing its Colab-specific upload/download cells |
-| MySQL with local-file import enabled | Rebuild the analytical database |
-| A compatible MySQL connector for Power BI | Refresh the PBIX from MySQL |
+| Git | Cloning the repository |
+| Microsoft Power BI Desktop on Windows | Opening and editing the interactive `.pbix` dashboard |
+| Google Colab | Running the notebook without local environment setup |
+| MySQL Server and MySQL CLI or Workbench | Rebuilding the dashboard's database source |
+| A Power BI-compatible MySQL driver | Refreshing the MySQL connection from Power BI Desktop |
 
-Exact runtime and package versions are not pinned in the current repository.
-
-### 1. Clone the repository
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/nafishaparveen2104/Loan-Default-Risk-Analysis-Dashboard.git
 cd Loan-Default-Risk-Analysis-Dashboard
 ```
 
-### 2. Open the dashboard
+### 2. Choose a Workflow
 
-Open [`Loan_data_analysis_dashboard.pbix`](Loan_data_analysis_dashboard.pbix) in Power BI Desktop. The PBIX contains an imported data snapshot, so a database connection is not required to inspect the committed report.
+#### View the Analysis
 
-### 3. Reproduce the cleaned dataset
+- Open [`Loan_data_analysis_dashboard.pbix`](./Loan_data_analysis_dashboard.pbix) in Power BI Desktop for the interactive experience.
+- Open [`Loan_Default_Risk_Report.pdf`](./Loan_Default_Risk_Report.pdf) when Power BI Desktop is unavailable.
+- Review the dashboard screenshots in this README from any platform.
 
-Open the notebook in Colab, run all cells, and select `loan_data.csv` when the upload widget appears:
+The PBIX contains an imported data snapshot, so it can be inspected without first rebuilding MySQL. MySQL is required when refreshing the source.
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nafishaparveen2104/Loan-Default-Risk-Analysis-Dashboard/blob/main/Loan_Data.ipynb)
+#### Reproduce the Data Preparation
 
-The final cell writes and downloads `loan_data_cleaned.csv`. The committed notebook is Colab-oriented: `google.colab` upload and download calls will not run unchanged in a standard local Jupyter environment.
+Open [`Loan_Data.ipynb`](./Loan_Data.ipynb) in [Google Colab](https://colab.research.google.com/github/nafishaparveen2104/Loan-Default-Risk-Analysis-Dashboard/blob/main/Loan_Data.ipynb), run the cells in order, and upload `loan_data.csv` when the first cell prompts for a file.
 
-### 4. Build the MySQL database
-
-The following commands target a fresh local schema and use the current repository’s SQL script. The script is not idempotent: it uses `CREATE DATABASE` and `CREATE TABLE` without `IF NOT EXISTS`.
+For local Jupyter, install the notebook dependencies first:
 
 ```bash
-mysql --local-infile=1 -u root -p < Database-Loan_data.sql
-
-mysql --local-infile=1 -u root -p loan_analysis <<SQL
-LOAD DATA LOCAL INFILE '$(pwd)/loan_data_cleaned.csv'
-INTO TABLE loan_data
-FIELDS TERMINATED BY ','
-OPTIONALLY ENCLOSED BY '"'
-LINES TERMINATED BY '\n'
-IGNORE 1 LINES
-(credit_policy, purpose, int_rate, installment, log_annual_inc, dti, fico, days_with_cr_line, revol_bal, revol_util, inq_last_6mths, delinq_2yrs, pub_rec, not_fully_paid, is_outlier);
-
-SELECT
-    COUNT(*) AS total_records,
-    SUM(not_fully_paid) AS not_fully_paid_records,
-    ROUND(AVG(not_fully_paid) * 100, 2) AS non_full_payment_rate_pct
-FROM loan_data;
-SQL
+python -m pip install jupyter pandas numpy
+jupyter notebook Loan_Data.ipynb
 ```
 
-Expected validation values are 9,578 records, 1,533 not-fully-paid records, and a 16.01% rate. After loading the data, run the analytical statements in [`Database-Loan_data.sql`](Database-Loan_data.sql) again as needed.
+The upload and download cells use `google.colab.files`. When running locally, skip those two Colab-specific operations and keep `loan_data.csv` in the repository root.
 
-If MySQL rejects `LOAD DATA LOCAL INFILE`, enable `local_infile` on the server and keep the client-side `--local-infile=1` option enabled.
+### 3. Rebuild the MySQL Table
 
-### 5. Refresh Power BI from MySQL
+Run the repository's schema and analysis script against a MySQL instance:
 
-The committed Power Query source is configured as follows:
+```bash
+mysql -u root -p < Database-Loan_data.sql
+```
 
-| Setting | Value |
-|---|---|
-| Connector | `MySQL.Database` |
-| Server | `localhost:3306` |
-| Database | `loan_analysis` |
-| Schema | `loan_analysis` |
-| Table | `loan_data` |
-| Storage | Imported model |
+Then load the cleaned CSV from Bash or Git Bash. `local_infile` must be enabled for the client and server:
 
-Start MySQL, open the PBIX, provide database credentials through Power BI’s data-source settings, and select **Refresh**. Credentials and passwords are not stored in the repository.
+```bash
+mysql --local-infile=1 -u root -p -e "
+LOAD DATA LOCAL INFILE '$(pwd)/loan_data_cleaned.csv'
+INTO TABLE loan_analysis.loan_data
+FIELDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '\"'
+LINES TERMINATED BY '\n'
+IGNORE 1 LINES;
+"
+```
+
+Validate the import:
+
+```bash
+mysql -u root -p loan_analysis -e "
+SELECT
+    COUNT(*) AS total_loans,
+    SUM(not_fully_paid) AS total_defaults,
+    ROUND(AVG(not_fully_paid) * 100, 2) AS default_rate_pct
+FROM loan_data;
+"
+```
+
+A complete import returns **9,578 loans**, **1,533 not-fully-paid loans**, and a **16.01% default rate**.
+
+### 4. Refresh Power BI
+
+1. Start MySQL and confirm that `loan_analysis.loan_data` is available.
+2. Open `Loan_data_analysis_dashboard.pbix` in Power BI Desktop.
+3. Go to **File → Options and settings → Data source settings**.
+4. Update the MySQL source or credentials if your environment differs from `localhost:3306`.
+5. Select **Refresh** and verify the four KPI cards against the expected values above.
+
+## Configuration and Refresh
+
+The repository has no environment variables or committed credentials. The source location is currently embedded in the Power Query definition.
+
+| Setting | Current value | Notes |
+|---|---|---|
+| Connector | `MySQL.Database` | Used by Power Query |
+| Host | `localhost:3306` | Hard-coded; update in Data Source Settings when necessary |
+| Database | `loan_analysis` | Created by `Database-Loan_data.sql` |
+| Table | `loan_data` | Contains the 15 cleaned fields |
+| Storage mode | Import | Data is embedded in the PBIX and updated by refresh |
+| Credentials | Not committed | Managed by Power BI Desktop and the local MySQL installation |
+| Power BI parameters | None | Host and database are not parameterized |
+| Environment variables | None | No `.env` file is required or read |
+
+The exact Power Query expression embedded in the model is:
+
+```powerquery
+let
+    Source = MySQL.Database("localhost:3306", "loan_analysis", [ReturnSingleDatabase=true]),
+    loan_analysis_loan_data = Source{[Schema="loan_analysis", Item="loan_data"]}[Data]
+in
+    loan_analysis_loan_data
+```
+
+## Power BI Semantic Model
+
+### Model Design
+
+- **Model shape:** one imported table named `loan_analysis loan_data`.
+- **Physical columns:** 15 fields loaded from MySQL.
+- **Calculated columns:** 5 DAX-derived risk bands.
+- **Measures:** 11 reusable DAX measures and data checks.
+- **Relationships:** none; the model contains a single analytical table.
+- **Dashboard page:** one 1,500 × 1,050 canvas with 17 visual containers.
+- **Security roles:** no row-level or object-level security is configured.
+
+### Calculated Columns
+
+| Column | DAX grouping logic | Dashboard use |
+|---|---|---|
+| `fico_band` | Low `<680`; Medium `680–749`; High `≥750` | Slicer and default-rate chart |
+| `dti_band` | Low `<10`; Medium `10–<20`; High `≥20` | Slicer and default-rate chart |
+| `interest_rate_band` | 5%–10%, 10%–15%, 15%–20%, 20%–25% | Available in the model; not displayed on the current page |
+| `revol_util_band` | Low `<30`; Medium `30–<60`; High `≥60` | Default-rate chart |
+| `fico_band_2` | Below 650, 650–699, 700–749, 750–799, 800+ | Available for more granular analysis; not displayed on the current page |
+
+### Measures
+
+| Measure | Business logic | Used in current dashboard |
+|---|---|---|
+| `Total Loans` | Count all model rows | KPI card and policy donut |
+| `Total Defaults` | Sum `not_fully_paid` | Available in model |
+| `Default Rate %` | Defaults divided by total rows, with zero fallback | KPI and all default-rate charts |
+| `Avg FICO Score` | Average `fico` | KPI card |
+| `Avg Interest Rate %` | Average `int_rate` multiplied by 100 | KPI card |
+| `Avg Annual Income` | Average `log_annual_inc` | Available in model; see limitation below |
+| `Avg Installment` | Average monthly installment | Available in model |
+| `Avg DTI` | Average debt-to-income ratio | Available in model |
+| `Avg Log Income` | Average `log_annual_inc` | Available in model |
+| `Check Values` | Distinct count of `not_fully_paid` | Data check; expected value is 2 |
+| `Total Rows Check` | Count all model rows | Data check; expected value is 9,578 |
 
 ## Data Dictionary
 
-The cleaned dataset uses underscore-separated names. Raw source names use dots, such as `credit.policy` and `not.fully.paid`.
-
 | Field | Type | Description |
 |---|---|---|
-| `credit_policy` | Integer / binary | `1` if the borrower met LendingClub’s stated credit-underwriting criteria; otherwise `0` |
-| `purpose` | Category | `all_other`, `credit_card`, `debt_consolidation`, `educational`, `home_improvement`, `major_purchase`, or `small_business` |
-| `int_rate` | Decimal | Loan interest rate stored as a proportion; `0.1189` represents 11.89% |
-| `installment` | Decimal | Monthly installment owed if the loan is funded |
-| `log_annual_inc` | Decimal | Natural logarithm of self-reported annual income |
-| `dti` | Decimal | Borrower debt-to-income ratio as supplied by the source |
-| `fico` | Integer | Borrower FICO score |
-| `days_with_cr_line` | Decimal | Number of days the borrower has had a credit line |
-| `revol_bal` | Integer | Revolving balance unpaid at the end of the billing cycle |
-| `revol_util` | Decimal | Revolving-line utilization percentage |
+| `credit_policy` | Integer / binary | `1` when the borrower meets LendingClub's credit-underwriting criteria; otherwise `0` |
+| `purpose` | Category | Loan purpose: all other, credit card, debt consolidation, educational, home improvement, major purchase, or small business |
+| `int_rate` | Decimal proportion | Loan interest rate; `0.1189` represents 11.89% |
+| `installment` | Decimal | Monthly installment owed by the borrower |
+| `log_annual_inc` | Decimal | Natural logarithm of the borrower's self-reported annual income |
+| `dti` | Decimal | Debt-to-income ratio |
+| `fico` | Integer | Borrower's FICO credit score |
+| `days_with_cr_line` | Decimal | Age of the borrower's credit line in days |
+| `revol_bal` | Integer | Revolving balance remaining at the end of the billing cycle |
+| `revol_util` | Decimal percent | Revolving-line utilization relative to available credit |
 | `inq_last_6mths` | Integer | Creditor inquiries during the previous six months |
 | `delinq_2yrs` | Integer | Payments 30 or more days past due during the previous two years |
 | `pub_rec` | Integer | Derogatory public records, such as bankruptcies, tax liens, or judgments |
-| `not_fully_paid` | Integer / binary | `1` if the loan was not paid in full; otherwise `0` |
-| `is_outlier` | Integer / binary | `1` when `revol_bal`, `days_with_cr_line`, or `dti` is outside its 3×IQR bounds |
+| `not_fully_paid` | Integer / binary | `1` when the loan was not fully paid; used as the analysis outcome |
+| `is_outlier` | Integer / binary | Added by the notebook; `1` when any selected field exceeds the 3×IQR extreme-outlier boundary |
 
-### Data-quality profile
+## Data Quality and Validation
+
+The notebook records the following checks before exporting the cleaned dataset:
 
 | Check | Result |
 |---|---:|
+| Raw shape | 9,578 rows × 14 columns |
+| Cleaned shape | 9,578 rows × 15 columns |
 | Missing values | 0 |
 | Duplicate rows | 0 |
-| Negative values in selected financial fields | 0 |
-| Raw FICO range | 612–827 |
-| Raw interest-rate range | 6.00%–21.64% |
-| Raw DTI range | 0.00–29.96 |
+| Negative interest rate, installment, FICO, DTI, or revolving balance | 0 |
+| Observed FICO range | 612–827 |
 | Extreme outliers flagged | 439 |
+| Rows removed | 0 |
 
-A lightweight integrity check can be run with the Python standard library:
+The initial 1.5×IQR profile identifies potential outliers in interest rate, installment, log income, FICO score, credit-line age, and revolving balance. The exported `is_outlier` field deliberately uses the more conservative 3×IQR rule across `revol_bal`, `days_with_cr_line`, and `dti`.
 
-```bash
-python - <<'PY'
-import csv
+These checks are notebook outputs, not an automated test suite. Re-run the notebook and compare the validation totals whenever the source data changes.
 
-with open("loan_data_cleaned.csv", newline="", encoding="utf-8") as file:
-    rows = list(csv.DictReader(file))
+## Operational Characteristics
 
-assert len(rows) == 9_578
-assert sum(int(row["not_fully_paid"]) for row in rows) == 1_533
-assert sum(int(row["is_outlier"]) for row in rows) == 439
-assert all(all(value != "" for value in row.values()) for row in rows)
-
-print("Validated: 9,578 rows, 1,533 not fully paid, 439 outlier flags, no empty fields.")
-PY
-```
-
-## Operational Scope
-
-This repository is a local analytical project rather than a deployed application.
-
-| Concern | Current implementation |
+| Area | Current implementation |
 |---|---|
-| API or web backend | Not present |
-| Predictive model or inference service | Not present |
-| Authentication | Delegated to local MySQL and Power BI; no application authentication layer |
-| Row/object-level security | Not configured in the Power BI model |
-| Environment variables | None; the PBIX source uses a hard-coded local host and database name |
-| Secrets | No database password is committed; Power BI requests credentials locally |
-| Caching | Power BI Import mode stores the small dataset in its embedded columnar model |
-| Rate limiting | Not applicable; no network service is exposed |
-| Logging | Notebook cell outputs and SQL query results only |
-| Monitoring | Not configured |
-| Automated tests | Not configured; notebook checks, SQL validation, and the integrity command above are manual |
-| CI/CD | Not configured |
-| Docker | Not configured |
-| Cloud deployment | Not configured |
-| Scheduled refresh | Not configured |
+| Query performance | Power BI Import mode stores the small single-table model in memory; DAX measures use simple aggregations. |
+| Caching | The PBIX contains an imported snapshot. Data changes are visible only after refresh. |
+| Scalability | Appropriate for the current 9,578-row dataset; no incremental refresh, partition strategy, or gateway configuration is included. |
+| Error handling | Notebook checks expose invalid ranges, nulls, and duplicates; the SQL and refresh steps rely on client error messages. |
+| Logging and monitoring | Notebook cell output and Power BI refresh status only; no centralized monitoring is configured. |
+| Authentication | MySQL credentials are managed outside the repository. There is no application or API authentication layer. |
+| Authorization | No Power BI row-level or object-level security roles are defined. |
+| CI/CD | No automated pipeline is configured. PBIX, notebook, datasets, and reports are versioned directly in Git. |
+| Containers | Docker is not used; Power BI Desktop remains a Windows desktop dependency. |
+| Deployment | No hosted Power BI Service workspace or public embed URL is included. |
 
-### Performance and scalability
+### Security Notes
 
-The current single-table, 9,578-row dataset is well suited to an imported Power BI model and requires no aggregation layer or incremental refresh. For a larger or continuously updated portfolio, the next architecture should add parameterized data sources, indexed database tables, incremental refresh partitions, automated data-quality tests, and monitored refresh jobs.
-
-### Security considerations
-
-- The public dataset contains borrower attributes but no direct identifiers such as names, emails, or account numbers.
-- The analysis still concerns financial behavior and should be handled according to the policies of any environment where it is republished.
-- Publishing the report to Power BI Service would require deliberate workspace access controls, gateway configuration, credential management, and row-level security where appropriate; none are included here.
-- This dashboard should not be used as an automated credit-decision system without governance, validation, fair-lending review, and current production data.
+- No database passwords, API keys, or environment files are committed.
+- A PBIX can contain imported data and connection metadata. Review both before distributing the file outside a trusted environment.
+- Configure row-level security, workspace permissions, a gateway, and credential rotation before adapting this project to confidential or production lending data.
+- The included dataset is public and does not contain direct borrower identifiers, but production credit data requires stricter privacy and regulatory controls.
 
 ## Limitations
 
-1. **Descriptive, not predictive.** No classifier, train/test split, feature-importance method, calibration analysis, or out-of-sample evaluation is implemented. “Strong predictors” in the accompanying report should be read as strong observed associations.
-2. **Historical sample.** The data covers LendingClub records from 2007–2010 and may not represent present-day borrower populations, products, economic conditions, or underwriting rules.
-3. **Outcome terminology.** `not_fully_paid` is a repayment outcome proxy, not a complete legal or accounting definition of default.
-4. **Heuristic bands.** FICO, DTI, utilization, and interest-rate thresholds are hand-defined analytical segments, not statistically optimized cutoffs.
-5. **Small high-inquiry groups.** Rates for large inquiry counts are unstable because some points represent only one or a few loans.
-6. **Retained outliers.** Extreme values remain in the analysis. This preserves information but can affect averages and small segments.
-7. **Rounded KPI.** Power BI currently abbreviates the total count to `10K`; the exact value is 9,578.
-8. **Misnamed supporting measure.** `Avg Annual Income` averages `log_annual_inc`; it does not exponentiate the values back to currency. Use `Avg Log Income` until the measure is corrected.
-9. **Local refresh dependency.** The PBIX expects MySQL at `localhost:3306`, which limits portability until the source is parameterized.
-10. **No automated delivery controls.** Dependency locking, tests, CI, refresh monitoring, and deployment automation are not yet included.
+- **Descriptive analysis only:** no classifier, train/test split, feature importance, calibration, fairness evaluation, or production inference endpoint is implemented.
+- **Outcome terminology:** `not_fully_paid` is used as a practical default proxy; it may not match every institution's formal default definition.
+- **Historical scope:** the source covers LendingClub loans from 2007–2010 and may not represent current borrowers, products, underwriting policies, or macroeconomic conditions.
+- **Sparse inquiry groups:** very high inquiry counts have tiny sample sizes. Apparent 0% or 100% rates in the line chart are not stable segment estimates.
+- **Manual workflow:** Colab upload/download, CSV-to-MySQL import, and Power BI refresh are not orchestrated automatically.
+- **Local data source:** the embedded Power Query points to `localhost:3306`, limiting portability until the source is changed or parameterized.
+- **Measure naming:** `Avg Annual Income` averages `log_annual_inc`; it does not reverse the logarithm or return average income in currency units. `Avg Log Income` performs the same aggregation.
+- **Floating-point storage:** the SQL schema uses `FLOAT` for decimal fields, which can introduce small representation differences.
+- **No automated tests or CI:** validation is documented in notebook outputs but is not enforced on each commit.
+- **No project license:** reuse terms for the repository's code, report, and dashboard have not yet been defined.
+
+> [!CAUTION]
+> This dashboard is an educational portfolio analysis. It should not be used as the sole basis for lending, pricing, adverse-action, or other high-impact decisions.
 
 ## Roadmap
 
-- [x] Profile and validate the raw dataset
-- [x] Preserve raw data and publish a standardized analytical dataset
-- [x] Add non-destructive extreme-outlier flags
-- [x] Create a MySQL schema and reusable portfolio queries
-- [x] Build an interactive Power BI dashboard and final report
-- [ ] Move notebook logic into a reusable Python module or script
-- [ ] Add a dependency manifest with pinned versions
-- [ ] Make database creation and loading idempotent
-- [ ] Parameterize the Power BI server, port, database, and table
-- [ ] Correct the total-card display units and `Avg Annual Income` measure
-- [ ] Add sample counts or confidence intervals to high-variance charts
-- [ ] Add automated data-contract tests and continuous integration
-- [ ] Add a repository-level open-source license and contribution policy
-- [ ] Evaluate a separate predictive workflow with temporal validation, calibration, explainability, drift monitoring, and fairness testing
-
-## Contributing
-
-Contributions that improve reproducibility, analytical correctness, dashboard accessibility, or documentation are welcome.
-
-1. Fork the repository and create a focused branch.
-2. Keep the raw CSV unchanged; write transformed outputs to the cleaned dataset or a new documented artifact.
-3. Preserve the 9,578-row baseline unless the contribution intentionally changes the data source.
-4. Re-run notebook checks, SQL validation, and the integrity command before submitting a pull request.
-5. Include screenshots for dashboard changes and document any DAX, Power Query, schema, or threshold changes.
-6. Run the Markdown whitespace check below before committing.
-
-```bash
-git switch -c docs/improve-documentation
-git diff --check
-```
-
-Use [GitHub Issues](https://github.com/nafishaparveen2104/Loan-Default-Risk-Analysis-Dashboard/issues) for defects, data questions, and enhancement proposals.
+- [ ] Parameterize the MySQL host, port, database, and table in Power Query.
+- [ ] Add a reproducible Python environment with pinned dependencies.
+- [ ] Refactor notebook transformations into a testable command-line pipeline.
+- [ ] Add schema, range, row-count, and aggregate regression tests in CI.
+- [ ] Convert the Power BI project to PBIP/TMDL for source-friendly semantic-model versioning.
+- [ ] Replace raw high-inquiry categories with statistically meaningful bands and expose sample counts.
+- [ ] Add confidence intervals and cohort-size warnings to segment comparisons.
+- [ ] Correct the annual-income measure or rename it to reflect the logarithmic source field.
+- [ ] Add Power BI Service deployment guidance, scheduled refresh, gateway setup, and row-level security.
+- [ ] Add an explicit project license and contribution guidelines.
+- [ ] If prediction becomes a goal, introduce leakage review, temporal validation, calibration, fairness testing, explainability, and model monitoring as a separate modeling workflow.
 
 ## Troubleshooting
 
-<details>
-<summary><strong>Power BI cannot refresh the MySQL source</strong></summary>
+| Problem | Resolution |
+|---|---|
+| `ModuleNotFoundError: google.colab` in local Jupyter | Run the notebook in Colab, or skip the Colab upload/download cells and read the repository's local CSV directly. |
+| `LOAD DATA LOCAL INFILE` is disabled | Enable `local_infile` for the MySQL client/server, or import `loan_data_cleaned.csv` with MySQL Workbench's Table Data Import Wizard. |
+| Power BI cannot connect to MySQL | Confirm that MySQL is running, the supported driver is installed, `localhost:3306` is reachable, and the credentials can access `loan_analysis`. |
+| PBIX opens but refresh fails | The embedded snapshot can open independently; refresh still requires the configured MySQL table and valid local credentials. |
+| Dashboard shows 10K instead of 9,578 | This is compact KPI formatting. `Total Rows Check` and the source table both contain exactly 9,578 rows. |
+| `CREATE DATABASE` reports that the database exists | Use the existing `loan_analysis` database, or remove it only if you intend to rebuild the table from scratch. |
+| Segment rates differ after editing thresholds | Review the five calculated-column definitions and refresh all visuals that use the affected bands. |
 
-Confirm that MySQL is running on `localhost:3306`, the `loan_analysis` database contains the `loan_data` table, and the compatible MySQL connector is installed. Then clear or update permissions under Power BI’s data-source settings and authenticate again.
+## Contributing
 
-</details>
+Contributions that improve reproducibility, data validation, semantic-model design, accessibility, or documentation are welcome.
 
-<details>
-<summary><strong>MySQL rejects the CSV import</strong></summary>
+1. Open an issue describing the proposed change and its effect on the published metrics.
+2. Fork the repository and create a focused branch.
+3. Keep raw source data unchanged; make transformations explicit in the notebook or pipeline.
+4. Re-run the quality checks and confirm the 9,578-row baseline unless the dataset intentionally changes.
+5. Update the PBIX, screenshots, and written report when a semantic definition or visual changes.
+6. Submit a pull request with before-and-after metrics and clear refresh instructions.
 
-Start the client with `--local-infile=1`, verify that the server permits `local_infile`, and use an absolute path to `loan_data_cleaned.csv`. Run the import from the repository root so `$(pwd)` resolves correctly.
+For consistency, use `snake_case` for cleaned fields, keep DAX thresholds documented, avoid silent row deletion, and distinguish descriptive findings from predictive claims.
 
-</details>
+## Dataset and License
 
-<details>
-<summary><strong>The notebook raises a <code>google.colab</code> import error</strong></summary>
+### Dataset
 
-The committed notebook uses Colab-specific file upload and download helpers. Open it through the **Open in Colab** badge, or adapt those two file-handling cells before using a local Jupyter runtime.
+The analysis uses the [Loan Data dataset on Kaggle](https://www.kaggle.com/datasets/itssuru/loan-data), which describes publicly available LendingClub lending records from 2007–2010. The Kaggle data card identifies the dataset under the [Open Data Commons Database Contents License 1.0](https://opendatacommons.org/licenses/dbcl/1-0/).
 
-</details>
+Dataset attribution and licensing apply independently from this repository's source files.
 
-<details>
-<summary><strong>The dashboard shows 10K loans instead of 9,578</strong></summary>
+### Repository License
 
-The card’s automatic display units abbreviate the exact count. Set the card visual’s display units to **None** in Power BI to show 9,578.
+This repository currently does **not** contain a `LICENSE` file. Until the maintainer adds one, the project code, dashboard, and reports do not carry an explicit open-source license. Add a license before redistributing or incorporating these materials into another project.
 
-</details>
+## Acknowledgements
 
-<details>
-<summary><strong>Is this a loan-default prediction model?</strong></summary>
+- [ItsSuru](https://www.kaggle.com/itssuru) for publishing the dataset on Kaggle.
+- LendingClub for the historical lending data described by the dataset source.
+- The Pandas, NumPy, Jupyter, MySQL, and Microsoft Power BI ecosystems used to build the analysis.
 
-No. It is an exploratory and descriptive analytics dashboard. It summarizes historical outcomes and segment-level associations but does not generate borrower-level probabilities or decisions.
+---
 
-</details>
+<div align="center">
 
-## Data Source and Attribution
+Built and maintained by [Nafisha Parveen](https://github.com/nafishaparveen2104).
 
-The dataset is available from [ItsSuru’s Loan Data dataset on Kaggle](https://www.kaggle.com/datasets/itssuru/loan-data). Kaggle describes it as publicly available LendingClub data covering 2007–2010 and lists the dataset license as **Database: Open Database, Contents: Database Contents** under the [Open Data Commons Database Contents License 1.0](https://opendatacommons.org/licenses/dbcl/1-0/).
-
-Please review the source page and its current terms before redistributing the data.
-
-## License
-
-This repository does **not** currently include a repository-level `LICENSE` file. In the absence of an explicit license, the project’s code, notebook, dashboard, SQL, documentation, and reports are not automatically granted open-source reuse rights. The dataset remains subject to its separately stated source license.
-
-For reuse beyond GitHub’s standard viewing and forking functionality, contact the repository maintainer or wait for an explicit project license to be added.
-
-## Maintainer
-
-Maintained by [Nafisha Parveen](https://github.com/nafishaparveen2104).
-
-If this analysis is useful, consider [starring the repository](https://github.com/nafishaparveen2104/Loan-Default-Risk-Analysis-Dashboard) or opening an issue with feedback.
+</div>
