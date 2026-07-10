@@ -11,7 +11,6 @@
 
 [Dashboard Preview](#dashboard-preview) · [Dataset](#dataset) · [Key Findings](#key-findings) · [Reproduce](#reproducing-this-project) · [Report](./Loan_Default_Risk_Report.pdf)
 
-
 **Repository:** [github.com/nafishaparveen2104/Loan-Default-Risk-Analysis-Dashboard](https://github.com/nafishaparveen2104/Loan-Default-Risk-Analysis-Dashboard)
 ---
 
@@ -36,9 +35,6 @@
 - [Future Enhancements](#future-enhancements)
 - [Troubleshooting](#troubleshooting)
 - [Author](#author)
-- [License](#license)
-- [Acknowledgments](#acknowledgments)
-
 ---
 
 ## Project Overview
